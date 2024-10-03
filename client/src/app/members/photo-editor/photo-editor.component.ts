@@ -35,7 +35,9 @@ export class PhotoEditorComponent implements OnInit {
     this.membersService.deletePhoto(photo).subscribe({
       next: (_) => {
         const updatedMember = { ...this.member() };
-        updatedMember.photos = updatedMember.photos.filter(x => x.id !== photo.id);
+        updatedMember.photos = updatedMember.photos.filter(
+          (x) => x.id !== photo.id
+        );
         this.memberChange.emit(updatedMember);
       },
     });
@@ -44,20 +46,7 @@ export class PhotoEditorComponent implements OnInit {
   setMainPhoto(photo: Photo) {
     this.membersService.setMainPhoto(photo).subscribe({
       next: (_) => {
-        const user = this.accountService.currentUser();
-        if (user) {
-          user.photoUrl = photo.url;
-          this.accountService.setCurrentUser(user);
-        }
-
-        const updatedMember = { ...this.member() };
-        updatedMember.photoUrl = photo.url;
-        updatedMember.photos.forEach((p) => {
-          if (p.isMain) p.isMain = false;
-          if (p.id == photo.id) p.isMain = true;
-        });
-
-        this.memberChange.emit(updatedMember);
+        this.updateUserMainPhoto(photo);
       },
     });
   }
@@ -82,6 +71,27 @@ export class PhotoEditorComponent implements OnInit {
       const updatedMember = { ...this.member() };
       updatedMember.photos.push(photo);
       this.memberChange.emit(updatedMember);
+
+      if (photo.isMain) {
+        this.updateUserMainPhoto(photo);
+      }
     };
+  }
+
+  updateUserMainPhoto(photo: any) {
+    const user = this.accountService.currentUser();
+    if (user) {
+      user.photoUrl = photo.url;
+      this.accountService.setCurrentUser(user);
+    }
+
+    const updatedMember = { ...this.member() };
+    updatedMember.photoUrl = photo.url;
+    updatedMember.photos.forEach((p) => {
+      if (p.isMain) p.isMain = false;
+      if (p.id == photo.id) p.isMain = true;
+    });
+
+    this.memberChange.emit(updatedMember);
   }
 }
